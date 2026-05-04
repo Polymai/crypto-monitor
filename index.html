@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Crypto Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar" aria-label="Application header">
+        <a class="brand" href="#top" aria-label="Crypto Monitor home">
+          <span class="brand__name">Crypto Monitor</span>
+          <span class="brand__mark">BTC desk</span>
+        </a>
+        <div class="topbar__status">
+          <span id="supabaseStatus" class="status-pill status-pill--neutral">Runtime config loading</span>
+          <span id="marketStatus" class="status-pill">Idle</span>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="hero" aria-labelledby="appTitle">
+          <div class="hero__copy">
+            <p class="eyebrow">BTC/USD arbitrage desk</p>
+            <h1 id="appTitle">Crypto Monitor</h1>
+            <div class="hero__meta" aria-live="polite">
+              <span id="planLabel">Free scan</span>
+              <span id="lastUpdated">No refresh yet</span>
+            </div>
+          </div>
+
+          <div class="hero__actions" aria-label="Scan controls">
+            <button id="refreshButton" class="button button--primary" type="button">Refresh prices</button>
+            <div class="segment-control" role="group" aria-label="Scan mode">
+              <button id="freePlanButton" class="segment-button is-active" type="button" data-plan="free" aria-pressed="true">Free</button>
+              <button id="premiumPlanButton" class="segment-button" type="button" data-plan="premium" aria-pressed="false">Premium</button>
+            </div>
+          </div>
+
+          <div class="metric-strip" aria-label="Market signal summary">
+            <div class="metric">
+              <span class="metric__label">Gross spread</span>
+              <strong id="spreadMetric">--</strong>
+            </div>
+            <div class="metric">
+              <span class="metric__label">Net edge</span>
+              <strong id="netMetric">--</strong>
+              <span class="metric__hint">After fees, transfer, network, and slippage.</span>
+            </div>
+            <div class="metric">
+              <span class="metric__label">Signal</span>
+              <strong id="signalMetric">Idle</strong>
+            </div>
+          </div>
+
+          <div class="access-grid" aria-label="Account and Premium access">
+            <form id="authForm" class="account-card" aria-label="Account login">
+              <div class="account-card__header">
+                <div>
+                  <span>Account</span>
+                  <strong id="accountEmail">Not signed in</strong>
+                </div>
+                <button id="logoutButton" class="button button--ghost" type="button" hidden>Log out</button>
+              </div>
+              <div id="authFields" class="account-card__fields">
+                <label class="field">
+                  <span>Email</span>
+                  <input id="authEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+                </label>
+                <label class="field">
+                  <span>Password</span>
+                  <input id="authPassword" name="password" type="password" autocomplete="current-password" minlength="6" placeholder="6+ characters">
+                </label>
+                <div class="button-row button-row--split">
+                  <button id="signInButton" class="button button--secondary" type="submit">Log in</button>
+                  <button id="signUpButton" class="button button--ghost" type="button">Create account</button>
+                </div>
+              </div>
+              <span id="accountStatus" class="account-card__status" aria-live="polite">Log in before checkout so Premium is saved to your account.</span>
+            </form>
+
+            <div class="billing-card" aria-label="Premium billing">
+              <div class="billing-card__copy">
+                <span>Premium</span>
+                <strong>$5/month</strong>
+                <p>Stripe checkout unlocks top 3 BTC routes, 10 extra crypto pairs, and local history capture.</p>
+              </div>
+              <button id="premiumCheckoutButton" class="button button--secondary" type="button">Subscribe with Stripe</button>
+              <span id="billingStatus" class="billing-card__status" aria-live="polite">Stripe checkout required for Premium.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel net-edge-panel" aria-labelledby="netEdgeTitle">
+          <div class="panel__header">
+            <div>
+              <p class="section-kicker">Cost model</p>
+              <h2 id="netEdgeTitle">Net edge settings</h2>
+            </div>
+            <button id="resetNetEdgeButton" class="button button--ghost" type="button">Reset defaults</button>
+          </div>
+          <div class="net-edge-layout">
+            <div class="net-edge-explainer">
+              <p>
+                Net edge is the estimated profit for one BTC route after exchange fees,
+                transfer cost, network fee, and slippage are deducted from the gross spread.
+              </p>
+              <div class="formula-strip" aria-label="Net edge formula">
+                <span>sell bid</span>
+                <span>- buy ask</span>
+                <span>- costs</span>
+                <strong>= net edge</strong>
+              </div>
+            </div>
+            <form id="netEdgeSettingsForm" class="settings-grid" aria-label="Net edge cost settings">
+              <label class="field">
+                <span>Trading fee per side</span>
+                <input id="tradeFeeInput" name="tradeFeePercent" type="number" min="0" max="2" step="0.01" inputmode="decimal">
+                <small>% of trade value</small>
+              </label>
+              <label class="field">
+                <span>Slippage buffer</span>
+                <input id="slippageInput" name="slippagePercent" type="number" min="0" max="2" step="0.01" inputmode="decimal">
+                <small>% across route</small>
+              </label>
+              <label class="field">
+                <span>Transfer fee</span>
+                <input id="transferFeeInput" name="transferFeePercent" type="number" min="0" max="1" step="0.001" inputmode="decimal">
+                <small>% of buy value</small>
+              </label>
+              <label class="field">
+                <span>Network fee</span>
+                <input id="networkFeeInput" name="networkFeeUsd" type="number" min="0" max="500" step="0.5" inputmode="decimal">
+                <small>USD per route</small>
+              </label>
+              <label class="field">
+                <span>Action threshold</span>
+                <input id="actionThresholdInput" name="actionThresholdUsd" type="number" min="0" max="1000" step="1" inputmode="decimal">
+                <small>USD net edge for Actionable</small>
+              </label>
+            </form>
+          </div>
+        </section>
+
+        <section class="dashboard-grid" aria-label="Market monitor">
+          <section class="panel panel--prices" aria-labelledby="pricesTitle">
+            <div class="panel__header">
+              <div>
+                <p class="section-kicker">Live quotes</p>
+                <h2 id="pricesTitle">Current BTC prices</h2>
+              </div>
+            </div>
+            <div id="priceList" class="exchange-list" aria-live="polite"></div>
+            <div id="failureList" class="failure-list" aria-live="polite"></div>
+          </section>
+
+          <section class="panel panel--best" aria-labelledby="bestTitle">
+            <div class="panel__header">
+              <div>
+                <p class="section-kicker">Best route</p>
+                <h2 id="bestTitle">Opportunity</h2>
+              </div>
+            </div>
+            <div id="bestOpportunity" aria-live="polite"></div>
+          </section>
+
+          <section id="premiumPanel" class="panel panel--premium" aria-labelledby="premiumTitle">
+            <div class="panel__header">
+              <div>
+                <p class="section-kicker">Premium scan</p>
+                <h2 id="premiumTitle">Top 3 routes</h2>
+              </div>
+            </div>
+            <div id="premiumOpportunityList" class="opportunity-stack" aria-live="polite"></div>
+          </section>
+        </section>
+
+        <section id="premiumPairsPanel" class="panel premium-pairs-panel" aria-labelledby="premiumPairsTitle">
+          <div class="panel__header">
+            <div>
+              <p class="section-kicker">Premium breadth</p>
+              <h2 id="premiumPairsTitle">10 extra crypto pairs</h2>
+            </div>
+            <span id="premiumPairsUpdatedAt" class="status-pill status-pill--neutral">Premium locked</span>
+          </div>
+          <p class="panel-note">
+            Shows the best cross-exchange gross spread for each pair: lowest buy ask vs highest sell bid across Binance,
+            Coinbase, and Kraken. These values are before trading fees, slippage, transfer costs, network fees, liquidity,
+            and order depth.
+          </p>
+          <div id="premiumPairsStatus" class="history-state" aria-live="polite"></div>
+          <div id="premiumPairsList" class="pair-grid" aria-live="polite"></div>
+        </section>
+
+        <section class="panel history-panel" aria-labelledby="historyTitle">
+          <div class="panel__header panel__header--actions">
+            <div>
+              <p class="section-kicker">Local premium history</p>
+              <h2 id="historyTitle">Captured snapshots <span id="historyCount" class="count-badge">0</span></h2>
+            </div>
+            <div class="button-row">
+              <button id="downloadCsvButton" class="button button--secondary" type="button">Download CSV</button>
+              <button id="clearHistoryButton" class="button button--ghost" type="button">Clear</button>
+            </div>
+          </div>
+          <div id="historyState" class="history-state" aria-live="polite"></div>
+          <div class="table-wrap" role="region" aria-label="Premium history table" tabindex="0">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th scope="col">Time</th>
+                  <th scope="col">Buy</th>
+                  <th scope="col">Sell</th>
+                  <th scope="col">Net edge</th>
+                  <th scope="col">Signal</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="data/supabaseConfig.js"></script>
+    <script src="data/stripeConfig.js"></script>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

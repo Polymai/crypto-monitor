@@ -1,0 +1,33 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap");
+
+:root {
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --color-ink: #151a1f;
+  --color-muted: #66717d;
+  --color-subtle: #8b96a3;
+  --color-bg: #f5f7f4;
+  --color-surface: #ffffff;
+  --color-surface-strong: #edf3ee;
+  --color-line: #dce4dd;
+  --color-line-strong: #c8d5ca;
+  --color-emerald: #147a5a;
+  --color-emerald-dark: #0e5f46;
+  --color-cyan: #236d86;
+  --color-amber: #a86414;
+  --color-red: #aa3939;
+  --color-black: #0f1418;
+  --shadow-soft: 0 18px 48px rgba(31, 43, 35, 0.1);
+  --shadow-card: 0 12px 28px rgba(20, 32, 24, 0.08);
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 56px;
+}
